@@ -1,0 +1,5 @@
+.env
+velina.sqlite
+node_modules/
+.history/
+.vscode/
