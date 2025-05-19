@@ -33,7 +33,7 @@ function getHistory(chatId, limit = 20) {
       [chatId, limit],
       (err, rows) => {
         if (err) reject(err);
-        else resolve(rows.reverse()); // 保持顺序
+        else resolve(rows.reverse()); // Reverse to maintain the order of messages
       }
     );
   });

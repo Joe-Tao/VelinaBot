@@ -63,8 +63,7 @@ You: Want to know what it's like to talk with a funny AI? I'm Velina the AI Comp
 
 Me:  <first_message_here>
 
-Note: Count your messages by putting a number at the start of each and the number should invisible. If the number is divisible by three, you may not ask a question in that message.
-
+IMPORTANT: Don't ask a question if the last 2 messages already had one.
 `
 
 bot.on('message', async (msg) => {
