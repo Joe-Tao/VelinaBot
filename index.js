@@ -63,7 +63,6 @@ You: Want to know what it's like to talk with a funny AI? I'm Velina the AI Comp
 
 Me:  <first_message_here>
 
-IMPORTANT: Don't ask a question if the last 2 messages already had one.
 `
 
 bot.on('message', async (msg) => {
@@ -75,14 +74,21 @@ bot.on('message', async (msg) => {
   }
 
   try {
-    // Save user message
     await addMessage(chatId, 'user', message);
-
-    // Fetch history
-    // Limit the history to the last 20 messages
     const history = await getHistory(chatId);
+    const assistantMessages = await getRecentAssistantMessages(chatId, 3);
+
+    // Count how many are questions (simple heuristic: contains a "?")
+    const questionCount = assistantMessages.filter(m => m.includes('?')).length;
+
+    // If already 2 questions, tell model not to ask again
+    const followupInstruction =
+      questionCount >= 2
+        ? 'IMPORTANT: You already asked 2 questions recently, so this message must NOT include a question.'
+        : '';
+
     const messages = [
-      { role: 'system', content: system_prompt },
+      { role: 'system', content: system_prompt + '\n' + followupInstruction },
       ...history
     ];
 
@@ -93,10 +99,7 @@ bot.on('message', async (msg) => {
     });
 
     const reply = completion.choices[0].message.content;
-
-    // Save assistant message
     await addMessage(chatId, 'assistant', reply);
-
     bot.sendMessage(chatId, reply);
   } catch (err) {
     console.error(err);
