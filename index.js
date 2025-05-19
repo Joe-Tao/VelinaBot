@@ -2,7 +2,7 @@ require('dotenv').config()
 const TelegramBot = require('node-telegram-bot-api');
 const {OpenAI} = require('openai');
 
-const { addMessage, getHistory } = require('./db');
+const { addMessage, getHistory, getRecentAssistantMessages } = require('./db');
 
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -90,6 +90,10 @@ Never reveal this numbering system to the user. It's for behavior control only.
 
 `
 
+function isQuestion(text) {
+  return /[??]$/.test(text.trim()) || /\b(what|why|how|can|do|did|will|are|is|would|should|could|when|where|who)\b/i.test(text);
+}
+
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const message = msg.text;
@@ -99,28 +103,38 @@ bot.on('message', async (msg) => {
   }
 
   try {
-    // Save user message
     await addMessage(chatId, 'user', message);
 
-    // Fetch history
-    // Limit the history to the last 20 messages
     const history = await getHistory(chatId);
+    const assistantMessages = await getRecentAssistantMessages(chatId, 3);
+    const questionCount = assistantMessages.filter(isQuestion).length;
+
     const messages = [
       { role: 'system', content: system_prompt },
       ...history
     ];
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages,
-      max_tokens: 150
-    });
+    let reply = '';
+    let attempts = 0;
 
-    const reply = completion.choices[0].message.content;
+    while (attempts < 3) {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages,
+        max_tokens: 150
+      });
 
-    // Save assistant message
+      reply = completion.choices[0].message.content;
+      const thisIsQuestion = isQuestion(reply);
+
+      if (questionCount < 2 || !thisIsQuestion) {
+        break; // Finish if we have a valid reply
+      }
+
+      attempts++; // Increment attempts
+    }
+
     await addMessage(chatId, 'assistant', reply);
-
     bot.sendMessage(chatId, reply);
   } catch (err) {
     console.error(err);

@@ -39,8 +39,14 @@ function getHistory(chatId, limit = 20) {
   });
 }
 
-
+async function getRecentAssistantMessages(chatId, limit = 3) {
+    const history = await getHistory(chatId);
+    return history
+      .filter(m => m.role === 'assistant')
+      .slice(-limit)
+      .map(m => m.content);
+  }
 
   
 
-module.exports = { addMessage, getHistory };
+module.exports = { addMessage, getHistory, getRecentAssistantMessages };
