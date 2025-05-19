@@ -2,7 +2,7 @@ require('dotenv').config()
 const TelegramBot = require('node-telegram-bot-api');
 const {OpenAI} = require('openai');
 
-const { addMessage, getHistory } = require('./db');
+const { addMessage, getHistory, getRecentAssistantMessages } = require('./db');
 
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
