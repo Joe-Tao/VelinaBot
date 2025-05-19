@@ -40,18 +40,7 @@ function getHistory(chatId, limit = 20) {
 }
 
 
-function getRecentAssistantMessages(chatId, count = 3) {
-    return new Promise((resolve, reject) => {
-      db.all(
-        `SELECT content FROM history WHERE chat_id = ? AND role = 'assistant' ORDER BY created_at DESC LIMIT ?`,
-        [chatId, count],
-        (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows.map(r => r.content).reverse()); // 最新在后
-        }
-      );
-    });
-  }
+
   
 
-module.exports = { addMessage, getHistory, getRecentAssistantMessages };
+module.exports = { addMessage, getHistory };
